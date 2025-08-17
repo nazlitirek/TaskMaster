@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { collection, query, getDocs, orderBy, where } from "firebase/firestore";
+import { collection, query, getDocs, orderBy, where, deleteDoc, doc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import "./AllTodo.css";
 
 export default function AllTodo() {
   const [todoLists, setTodoLists] = useState([]);
+  const [filteredLists, setFilteredLists] = useState([]);
   const [tasks, setTasks] = useState({});
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [filterBy, setFilterBy] = useState("all");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,12 +35,94 @@ export default function AllTodo() {
         setLoading(false);
       } catch (err) {
         console.error("Veri çekilemedi:", err);
+        setError("Veriler yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin.");
         setLoading(false);
       }
     };
 
     fetchTodoLists();
   }, []);
+
+  // Arama ve filtreleme fonksiyonu
+  useEffect(() => {
+    let filtered = [...todoLists];
+
+    // Arama
+    if (searchTerm) {
+      filtered = filtered.filter(list => 
+        list.title.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filtreleme
+    if (filterBy !== "all") {
+      filtered = filtered.filter(list => {
+        const stats = getTaskStats(list.id);
+        const quadrants = getQuadrantCounts(list.id);
+        
+        switch (filterBy) {
+          case "urgent":
+            return quadrants.do > 0;
+          case "completed":
+            return stats.completionRate === 100;
+          case "active":
+            return stats.activeTasks > 0;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Sıralama
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "title":
+          return a.title.localeCompare(b.title);
+        case "progress":
+          const aStats = getTaskStats(a.id);
+          const bStats = getTaskStats(b.id);
+          return bStats.completionRate - aStats.completionRate;
+        case "taskCount":
+          const aTasks = tasks[a.id] || [];
+          const bTasks = tasks[b.id] || [];
+          return bTasks.length - aTasks.length;
+        default: // createdAt
+          return new Date(b.createdAt?.toDate?.() || 0) - new Date(a.createdAt?.toDate?.() || 0);
+      }
+    });
+
+    setFilteredLists(filtered);
+  }, [todoLists, searchTerm, sortBy, filterBy, tasks]);
+
+  // Liste silme fonksiyonu
+  const deleteList = async (listId, e) => {
+    e.stopPropagation();
+    
+    if (window.confirm("Bu listeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.")) {
+      try {
+        // Önce listedeki tüm task'leri sil
+        const listTasks = tasks[listId] || [];
+        for (let task of listTasks) {
+          await deleteDoc(doc(db, "tasks", task.id));
+        }
+        
+        // Sonra listeyi sil
+        await deleteDoc(doc(db, "todolists", listId));
+        
+        // State'i güncelle
+        setTodoLists(prev => prev.filter(list => list.id !== listId));
+        setTasks(prev => {
+          const newTasks = { ...prev };
+          delete newTasks[listId];
+          return newTasks;
+        });
+        
+      } catch (err) {
+        console.error("Liste silinirken hata:", err);
+        setError("Liste silinirken bir hata oluştu.");
+      }
+    }
+  };
 
   const getTaskStats = (listId) => {
     const listTasks = tasks[listId] || [];
@@ -71,7 +158,25 @@ export default function AllTodo() {
       <div className="alltodo-container">
         <div className="loading-state">
           <div className="loading-spinner"></div>
-          <p>Loading your lists...</p>
+          <p>Listeleriniz yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="alltodo-container">
+        <div className="error-state">
+          <div className="error-icon">⚠️</div>
+          <h3 className="error-title">Bir Hata Oluştu</h3>
+          <p className="error-description">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="retry-btn"
+          >
+            Tekrar Dene
+          </button>
         </div>
       </div>
     );
@@ -107,6 +212,94 @@ export default function AllTodo() {
     );
   }
 
+  if (filteredLists.length === 0 && todoLists.length > 0) {
+    return (
+      <div className="alltodo-container">
+        <div className="header-section">
+          <button onClick={() => navigate("/dashboard")} className="back-btn">
+            <span className="back-icon">←</span>
+            Back to Dashboard
+          </button>
+          <div className="header-content">
+            <h1 className="page-title">All Lists</h1>
+            <p className="page-subtitle">Your task management hub</p>
+          </div>
+          <button 
+            onClick={() => navigate("/createTodo")} 
+            className="create-new-btn"
+          >
+            <span className="plus-icon">+</span>
+            New List
+          </button>
+        </div>
+
+        <div className="controls-section">
+          <div className="search-container">
+            <div className="search-input-wrapper">
+              <span className="search-icon">🔍</span>
+              <input
+                type="text"
+                placeholder="Search lists..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              {searchTerm && (
+                <button 
+                  onClick={() => setSearchTerm("")}
+                  className="clear-search-btn"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+          
+          <div className="filters-container">
+            <select 
+              value={filterBy} 
+              onChange={(e) => setFilterBy(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">All Lists</option>
+              <option value="urgent">Urgent Tasks</option>
+              <option value="active">Active Lists</option>
+              <option value="completed">Completed Lists</option>
+            </select>
+            
+            <select 
+              value={sortBy} 
+              onChange={(e) => setSortBy(e.target.value)}
+              className="sort-select"
+            >
+              <option value="createdAt">Created Date</option>
+              <option value="title">Name (A-Z)</option>
+              <option value="progress">Progress</option>
+              <option value="taskCount">Task Count</option>
+            </select>
+          </div>
+        </div>
+        
+        <div className="no-results-state">
+          <div className="no-results-icon">🔍</div>
+          <h3 className="no-results-title">No matching lists found</h3>
+          <p className="no-results-description">
+            Try adjusting your search terms or filters
+          </p>
+          <button 
+            onClick={() => {
+              setSearchTerm("");
+              setFilterBy("all");
+            }}
+            className="clear-filters-btn"
+          >
+            Clear All Filters
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="alltodo-container">
       <div className="header-section">
@@ -125,6 +318,53 @@ export default function AllTodo() {
           <span className="plus-icon">+</span>
           New List
         </button>
+      </div>
+
+      <div className="controls-section">
+        <div className="search-container">
+          <div className="search-input-wrapper">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Search lists..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm("")}
+                className="clear-search-btn"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+        
+        <div className="filters-container">
+          <select 
+            value={filterBy} 
+            onChange={(e) => setFilterBy(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">All Lists</option>
+            <option value="urgent">Urgent Tasks</option>
+            <option value="active">Active Lists</option>
+            <option value="completed">Completed Lists</option>
+          </select>
+          
+          <select 
+            value={sortBy} 
+            onChange={(e) => setSortBy(e.target.value)}
+            className="sort-select"
+          >
+            <option value="createdAt">Created Date</option>
+            <option value="title">Name (A-Z)</option>
+            <option value="progress">Progress</option>
+            <option value="taskCount">Task Count</option>
+          </select>
+        </div>
       </div>
 
       <div className="stats-overview">
@@ -146,14 +386,14 @@ export default function AllTodo() {
         </div>
         <div className="stat-card">
           <div className="stat-number">
-            {Object.values(tasks).reduce((sum, list) => sum + list.filter(t => !t.isDone).length, 0)}
+            {filteredLists.length}
           </div>
-          <div className="stat-label">Active Tasks</div>
+          <div className="stat-label">Showing</div>
         </div>
       </div>
 
       <div className="lists-grid">
-        {todoLists.map(list => {
+        {filteredLists.map(list => {
           const stats = getTaskStats(list.id);
           const quadrants = getQuadrantCounts(list.id);
           const hasUrgentTasks = quadrants.do > 0;
@@ -166,8 +406,17 @@ export default function AllTodo() {
             >
               <div className="list-header">
                 <h3 className="list-title">{list.title}</h3>
-                <div className="list-date">
-                  {list.createdAt?.toDate?.()?.toLocaleDateString() || 'Recently'}
+                <div className="list-actions">
+                  <div className="list-date">
+                    {list.createdAt?.toDate?.()?.toLocaleDateString() || 'Recently'}
+                  </div>
+                  <button
+                    onClick={(e) => deleteList(list.id, e)}
+                    className="delete-list-btn"
+                    title="Delete list"
+                  >
+                    🗑️
+                  </button>
                 </div>
               </div>
 

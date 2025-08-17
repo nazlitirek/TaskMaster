@@ -1,6 +1,8 @@
 .auth-container {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   max-width: 700px;
+  width: 100%;
   margin: 50px auto;
   background: white;
   border-radius: 15px;
@@ -14,11 +16,11 @@
   background: #7b1fa2;
   color: white;
   padding: 50px 30px;
-  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .welcome-section button,
@@ -57,8 +59,12 @@
 
 
 .form-section {
-  flex: 1;
   padding: 50px 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  background: white;
 }
 
 .form-section h2 {
@@ -90,7 +96,7 @@
 
 @media (max-width: 768px) {
   .auth-container {
-    flex-direction: column;
+    grid-template-columns: 1fr;
     min-height: auto;
     max-width: 400px;
   }

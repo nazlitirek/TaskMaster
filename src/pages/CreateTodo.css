@@ -1,9 +1,9 @@
 /* Modern minimal design for CreateTodo page */
 
 .create-todo-container {
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 1.5rem;
+  padding: 3rem 2rem;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
@@ -11,7 +11,8 @@
 
 .header-section {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
   gap: 2rem;
   margin-bottom: 2rem;
   background: white;
@@ -19,6 +20,7 @@
   border-radius: 16px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
+  position: relative;
 }
 
 .back-btn {
@@ -35,7 +37,8 @@
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
-  flex-shrink: 0;
+  position: absolute;
+  left: 1.5rem;
 }
 
 .back-btn:hover {
@@ -54,8 +57,11 @@
 }
 
 .header-content {
-  flex: 1;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .page-title {
@@ -154,25 +160,25 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  border-radius: 10px;
-  padding: 0.625rem 1.25rem;
-  font-size: 0.9rem;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  gap: 0.375rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .add-task-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 15px -1px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .plus-icon {
-  font-size: 1.2rem;
+  font-size: 1rem;
   line-height: 1;
 }
 
@@ -185,8 +191,8 @@
 
 .table-header {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr auto;
-  gap: 0.75rem;
+  grid-template-columns: 2fr 140px 140px 140px 60px;
+  gap: 1.25rem;
   background: #667eea;
   padding: 0.75rem 1rem;
   color: white;
@@ -212,7 +218,7 @@
 
 .table-footer {
   background: #f8fafc;
-  padding: 1rem 1.5rem;
+  padding: 0.75rem 1rem;
   border-top: 1px solid #e2e8f0;
   display: flex;
   justify-content: flex-end;
@@ -221,11 +227,12 @@
 
 .task-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr auto;
-  gap: 0.75rem;
+  grid-template-columns: 2fr 140px 140px 140px 60px;
+  gap: 1.25rem;
   padding: 1rem;
   border-bottom: 1px solid #f1f5f9;
   transition: background-color 0.2s ease;
+  align-items: center;
 }
 
 .task-row:hover {
@@ -239,6 +246,7 @@
 .input-cell {
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .input-cell.task-name {
@@ -272,14 +280,16 @@
 
 .select-input {
   width: 100%;
-  max-width: 80px;
-  padding: 0.75rem;
+  max-width: 120px;
+  padding: 0.75rem 0.5rem;
   border: 1.5px solid #e2e8f0;
   border-radius: 8px;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   background: #fafafa;
   cursor: pointer;
   transition: all 0.2s ease;
+  text-align: center;
+  font-weight: 600;
 }
 
 .select-input:focus {
@@ -288,6 +298,27 @@
   background: white;
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
 }
+
+/* Color coding for importance levels */
+.importance-1 { border-color: #cbd5e0; background: #f7fafc; }
+.importance-2 { border-color: #a0aec0; background: #edf2f7; }
+.importance-3 { border-color: #4299e1; background: #ebf8ff; }
+.importance-4 { border-color: #ed8936; background: #fef5e7; }
+.importance-5 { border-color: #f56565; background: #fed7d7; }
+
+/* Color coding for urgency levels */
+.urgency-1 { border-color: #cbd5e0; background: #f7fafc; }
+.urgency-2 { border-color: #a0aec0; background: #edf2f7; }
+.urgency-3 { border-color: #4299e1; background: #ebf8ff; }
+.urgency-4 { border-color: #ed8936; background: #fef5e7; }
+.urgency-5 { border-color: #f56565; background: #fed7d7; }
+
+/* Color coding for effort levels */
+.effort-1 { border-color: #48bb78; background: #f0fff4; }
+.effort-2 { border-color: #68d391; background: #f0fff4; }
+.effort-3 { border-color: #4299e1; background: #ebf8ff; }
+.effort-4 { border-color: #ed8936; background: #fef5e7; }
+.effort-5 { border-color: #f56565; background: #fed7d7; }
 
 .delete-btn {
   background: #fed7d7;
@@ -322,9 +353,9 @@
   background: #f7fafc;
   color: #4a5568;
   border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 0.875rem 2rem;
-  font-size: 1rem;
+  border-radius: 10px;
+  padding: 0.625rem 1.5rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -340,25 +371,25 @@
   background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
   color: white;
   border: none;
-  border-radius: 12px;
-  padding: 0.875rem 2rem;
-  font-size: 1rem;
+  border-radius: 10px;
+  padding: 0.625rem 1.5rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  gap: 0.375rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .save-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 15px -1px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .save-icon {
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 /* Animations */
@@ -376,7 +407,7 @@
 /* Responsive design */
 @media (max-width: 768px) {
   .create-todo-container {
-    padding: 1rem;
+    padding: 2rem 1.5rem;
   }
   
   .header-section {
@@ -384,10 +415,12 @@
     gap: 1rem;
     padding: 1.25rem;
     margin-bottom: 1.5rem;
+    position: static;
   }
   
   .back-btn {
     align-self: flex-start;
+    position: static;
   }
   
   .header-content {
@@ -409,8 +442,8 @@
   
   .table-header,
   .task-row {
-    grid-template-columns: 2fr 0.8fr 0.8fr 0.8fr auto;
-    gap: 0.5rem;
+    grid-template-columns: 2fr 110px 110px 110px auto;
+    gap: 1rem;
     padding: 0.75rem 1rem;
   }
   
@@ -426,8 +459,8 @@
   }
   
   .select-input {
-    max-width: none;
-    font-size: 0.85rem;
+    max-width: 100px;
+    font-size: 0.8rem;
   }
   
   .task-input {
@@ -436,19 +469,21 @@
   }
   
   .table-footer {
-    padding: 0.75rem 1rem;
+    padding: 0.625rem 0.875rem;
     justify-content: center;
   }
   
   .add-task-btn {
     width: 100%;
     justify-content: center;
+    padding: 0.625rem 1rem;
+    font-size: 0.8rem;
   }
 }
 
 @media (max-width: 480px) {
   .create-todo-container {
-    padding: 0.5rem;
+    padding: 1.5rem 1rem;
   }
   
   .header-section {
@@ -578,7 +613,7 @@
     border: 1px solid #e2e8f0;
     border-radius: 12px;
     margin-top: 0.75rem;
-    padding: 1rem;
+    padding: 0.75rem;
   }
   
   .delete-btn {
@@ -592,7 +627,7 @@
   
   .cancel-btn,
   .save-btn {
-    padding: 0.875rem 1.5rem;
-    font-size: 0.95rem;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.85rem;
   }
 }

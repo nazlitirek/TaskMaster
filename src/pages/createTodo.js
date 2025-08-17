@@ -77,7 +77,7 @@ export default function CreateTodo() {
 
       await addDoc(collection(db, "tasks"), {
         todolistId: listRef.id,
-        name: t.name,
+        taskName: t.name,
         importance: t.importance,
         urgency: t.urgency,
         effort: t.effort,
@@ -104,7 +104,6 @@ export default function CreateTodo() {
         </button>
         <div className="header-content">
           <h1 className="page-title">Create New List</h1>
-          <p className="page-subtitle">Organize your tasks efficiently</p>
         </div>
       </div>
 
@@ -117,7 +116,6 @@ export default function CreateTodo() {
 
       <div className="form-section">
         <div className="input-group">
-          <label className="input-label">List Title</label>
           <input
             type="text"
             value={listTitle}
@@ -129,7 +127,6 @@ export default function CreateTodo() {
 
         <div className="tasks-section">
           <div className="section-header">
-            <h2 className="section-title">Tasks</h2>
           </div>
 
           <div className="table-container">
@@ -160,11 +157,13 @@ export default function CreateTodo() {
                       onChange={(e) =>
                         handleTaskChange(index, "importance", Number(e.target.value))
                       }
-                      className="select-input"
+                      className={`select-input importance-${task.importance}`}
                     >
-                      {[1, 2, 3, 4, 5].map(num => (
-                        <option key={num} value={num}>{num}</option>
-                      ))}
+                      <option value={1}>1 - Very Low</option>
+                      <option value={2}>2 - Low</option>
+                      <option value={3}>3 - Medium</option>
+                      <option value={4}>4 - High</option>
+                      <option value={5}>5 - Very High</option>
                     </select>
                   </div>
                   <div className="input-cell" data-label="Urgency:">
@@ -173,11 +172,13 @@ export default function CreateTodo() {
                       onChange={(e) =>
                         handleTaskChange(index, "urgency", Number(e.target.value))
                       }
-                      className="select-input"
+                      className={`select-input urgency-${task.urgency}`}
                     >
-                      {[1, 2, 3, 4, 5].map(num => (
-                        <option key={num} value={num}>{num}</option>
-                      ))}
+                      <option value={1}>1 - Very Low</option>
+                      <option value={2}>2 - Low</option>
+                      <option value={3}>3 - Medium</option>
+                      <option value={4}>4 - High</option>
+                      <option value={5}>5 - Very High</option>
                     </select>
                   </div>
                   <div className="input-cell" data-label="Effort:">
@@ -186,11 +187,13 @@ export default function CreateTodo() {
                       onChange={(e) =>
                         handleTaskChange(index, "effort", Number(e.target.value))
                       }
-                      className="select-input"
+                      className={`select-input effort-${task.effort}`}
                     >
-                      {[1, 2, 3, 4, 5].map(num => (
-                        <option key={num} value={num}>{num}</option>
-                      ))}
+                      <option value={1}>1 - Very Easy</option>
+                      <option value={2}>2 - Easy</option>
+                      <option value={3}>3 - Medium</option>
+                      <option value={4}>4 - Hard</option>
+                      <option value={5}>5 - Very Hard</option>
                     </select>
                   </div>
                   <div className="input-cell actions">
