@@ -4,7 +4,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBVe7gKKOQloCr2vI5a9sYd3A0jjSyBMbI",
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: "taskmaster-1969.firebaseapp.com",
   projectId: "taskmaster-1969",
   storageBucket: "taskmaster-1969.firebasestorage.app",
