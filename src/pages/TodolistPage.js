@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { collection, query, where, getDocs, orderBy, doc, updateDoc, getDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, doc, updateDoc, getDoc, addDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import "./TodolistPage.css";
 
@@ -12,6 +12,13 @@ export default function TodolistPage() {
   const [loading, setLoading] = useState(true);
   const [editingTask, setEditingTask] = useState(null);
   const [editForm, setEditForm] = useState({
+    taskName: "",
+    importance: 1,
+    urgency: 1,
+    effort: 1
+  });
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addForm, setAddForm] = useState({
     taskName: "",
     importance: 1,
     urgency: 1,
@@ -169,6 +176,68 @@ export default function TodolistPage() {
     }
   };
 
+  // Task ekleme fonksiyonu
+  const addTask = async () => {
+    if (!addForm.taskName.trim()) return;
+
+    try {
+      const newTask = {
+        taskName: addForm.taskName,
+        importance: parseInt(addForm.importance),
+        urgency: parseInt(addForm.urgency),
+        effort: parseInt(addForm.effort),
+        todolistId: id,
+        isDone: false,
+        createdAt: serverTimestamp()
+      };
+
+      const docRef = await addDoc(collection(db, "tasks"), newTask);
+      const addedTask = { id: docRef.id, ...newTask, createdAt: new Date() };
+
+      setBuckets(prev => {
+        const allTasks = [
+          ...prev.do,
+          ...prev.schedule,
+          ...prev.delegate,
+          ...prev.delete,
+          ...prev.done,
+          addedTask
+        ];
+        return categorizeTasksStable(allTasks);
+      });
+
+      // Form'u temizle ve kapat
+      setAddForm({
+        taskName: "",
+        importance: 1,
+        urgency: 1,
+        effort: 1
+      });
+      setShowAddForm(false);
+    } catch (error) {
+      console.error("Error adding task:", error);
+    }
+  };
+
+  // Task silme fonksiyonu
+  const deleteTask = async (taskId) => {
+    if (!window.confirm("Bu task'ı silmek istediğinizden emin misiniz?")) return;
+
+    try {
+      await deleteDoc(doc(db, "tasks", taskId));
+
+      setBuckets(prev => ({
+        do: prev.do.filter(t => t.id !== taskId),
+        schedule: prev.schedule.filter(t => t.id !== taskId),
+        delegate: prev.delegate.filter(t => t.id !== taskId),
+        delete: prev.delete.filter(t => t.id !== taskId),
+        done: prev.done.filter(t => t.id !== taskId),
+      }));
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
+  };
+
 
   const getBucketConfig = (bucketName) => {
     const configs = {
@@ -252,13 +321,73 @@ export default function TodolistPage() {
               </span>
             </div>
           </div>
+          <button 
+            onClick={() => setShowAddForm(true)} 
+            className="add-task-btn"
+            title="Add New Task"
+          >
+            + Add Task
+          </button>
         </div>
       </div>
 
       <div className="eisenhower-matrix">
+        {/* Add Task Form */}
+        {showAddForm && (
+          <div className="add-task-modal">
+            <div className="add-task-form">
+              <div className="form-header">
+                <h3>Add New Task</h3>
+                <button onClick={() => setShowAddForm(false)} className="close-btn">×</button>
+              </div>
+              <div className="form-content">
+                <input
+                  type="text"
+                  value={addForm.taskName}
+                  onChange={(e) => setAddForm({...addForm, taskName: e.target.value})}
+                  placeholder="Task name"
+                  className="task-name-input"
+                />
+                <div className="form-metrics">
+                  <div className="metric-input">
+                    <label>Importance (1-5):</label>
+                    <select
+                      value={addForm.importance}
+                      onChange={(e) => setAddForm({...addForm, importance: e.target.value})}
+                    >
+                      {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </div>
+                  <div className="metric-input">
+                    <label>Urgency (1-5):</label>
+                    <select
+                      value={addForm.urgency}
+                      onChange={(e) => setAddForm({...addForm, urgency: e.target.value})}
+                    >
+                      {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </div>
+                  <div className="metric-input">
+                    <label>Effort (1-5):</label>
+                    <select
+                      value={addForm.effort}
+                      onChange={(e) => setAddForm({...addForm, effort: e.target.value})}
+                    >
+                      {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="form-actions">
+                  <button onClick={addTask} className="save-btn">Add Task</button>
+                  <button onClick={() => setShowAddForm(false)} className="cancel-btn">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="matrix-header">
           <h2 className="matrix-title">Eisenhower Matrix</h2>
-          <p className="matrix-subtitle">Organize your tasks by importance and urgency</p>
         </div>
 
         <div className="matrix-grid">
@@ -360,6 +489,13 @@ export default function TodolistPage() {
                                 title="Edit task"
                               >
                                 ✏️
+                              </button>
+                              <button 
+                                onClick={() => deleteTask(task.id)}
+                                className="delete-btn"
+                                title="Delete task"
+                              >
+                                🗑️
                               </button>
                             </div>
                           </>
@@ -463,6 +599,13 @@ export default function TodolistPage() {
                           title="Edit task"
                         >
                           ✏️
+                        </button>
+                        <button 
+                          onClick={() => deleteTask(task.id)}
+                          className="delete-btn"
+                          title="Delete task"
+                        >
+                          🗑️
                         </button>
                       </div>
                     </>
